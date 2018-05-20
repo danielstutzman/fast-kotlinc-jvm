@@ -13,7 +13,6 @@ data class StringConstant(val s: String): Ast
 class ToAstVisitor: KotlinParserBaseVisitor<Ast>() {
   override fun visitKotlinFile(ctx: KotlinParser.KotlinFileContext): Ast {
     val child = visit(ctx.topLevelObject().single())
-    println("kotlinFile $child")
     return FileContents(child)
   }
 
