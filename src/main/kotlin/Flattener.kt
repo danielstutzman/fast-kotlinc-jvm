@@ -1,4 +1,4 @@
-package kotlinc
+package com.danstutzman.kotlinc
 
 import java.util.SortedMap
 

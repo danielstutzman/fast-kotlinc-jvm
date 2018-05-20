@@ -1,4 +1,4 @@
-package kotlinc
+package com.danstutzman.kotlinc
 
 sealed class Node {
   data class Class(

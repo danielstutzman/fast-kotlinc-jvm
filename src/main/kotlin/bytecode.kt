@@ -1,4 +1,4 @@
-package kotlinc
+package com.danstutzman.kotlinc
 
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream

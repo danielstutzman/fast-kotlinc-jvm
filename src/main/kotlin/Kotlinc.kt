@@ -1,4 +1,4 @@
-package kotlinc
+package com.danstutzman.kotlinc
 
 import com.github.sarahbuisson.kotlinparser.KotlinLexer
 import com.github.sarahbuisson.kotlinparser.KotlinParser

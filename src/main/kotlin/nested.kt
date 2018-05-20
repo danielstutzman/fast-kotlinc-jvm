@@ -1,4 +1,4 @@
-package kotlinc
+package com.danstutzman.kotlinc
 
 sealed class Nested {
   sealed class Expr {

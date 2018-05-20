@@ -1,4 +1,4 @@
-package kotlinc
+package com.danstutzman.kotlinc
 
 data class AccessFlags(
 	val public: Boolean = false,

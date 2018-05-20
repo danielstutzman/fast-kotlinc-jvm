@@ -5,14 +5,14 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.danstutzman</groupId>
+  <groupId>com.danstutzman.kotlinc</groupId>
   <artifactId>fast-kotlinc-jvm</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <properties>
     <kotlin.version>1.2.41</kotlin.version>
     <junit.version>4.12</junit.version>
-    <main.class>kotlinc.KotlincKt</main.class>
+    <main.class>com.danstutzman.kotlinc.KotlincKt</main.class>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
