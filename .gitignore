@@ -2,3 +2,5 @@
 /HelloKt.class
 .*.swp
 /.mvn-classpath
+/.idea
+/fast-kotlinc-jvm.iml

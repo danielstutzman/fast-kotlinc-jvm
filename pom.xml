@@ -109,10 +109,8 @@
           </execution>
         </executions>
         <configuration>
-          <sourceDirectory>src/main/antlr4/com/github/sarahbuisson/kotlinparser</sourceDirectory>
+          <sourceDirectory>src/main/antlr4</sourceDirectory>
           <arguments>
-            <argument>-package</argument>
-            <argument>com.github.sarahbuisson.kotlinparser</argument>
             <argument>-no-listener</argument>
             <argument>-visitor</argument>
           </arguments>
