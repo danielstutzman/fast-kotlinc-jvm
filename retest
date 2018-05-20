@@ -1,0 +1,36 @@
+#!/bin/bash -ex
+NAILGUN_DIR=../nailgun-nailgun-all-0.9.1
+KOTLINC_DIR=~/dev/kotlinc
+
+if [[ `ps aux | grep NGServer | grep -v grep` = "" ]]; then
+  echo "Starting Nailgun server..."
+  java -Xmx2024M -Xms2024M -verbose:gc \
+    -cp $NAILGUN_DIR/nailgun-server/target/classes:$KOTLINC_DIR/lib/kotlin-preloader.jar:$KOTLINC_DIR/lib/kotlin-compiler.jar \
+    com.martiansoftware.nailgun.NGServer &
+  sleep 1
+fi
+
+if [ pom.xml -nt .mvn-classpath ]; then
+  rm -f .mvn-classpath
+  mvn dependency:build-classpath -Dmdep.outputFile=.mvn-classpath
+fi
+
+CP=~/.m2/repository/org/antlr/antlr4/4.7/antlr4-4.7.jar
+CP=$CP:~/.m2/repository/org/antlr/antlr4-runtime/4.7/antlr4-runtime-4.7.jar
+CP=$CP:~/.m2/repository/org/jetbrains/kotlin/kotlin-test/1.2.41/kotlin-test-1.2.41.jar
+CP=$CP:~/.m2/repository/junit/junit/4.12/junit-4.12.jar
+#time ~/dev/kotlinc/bin/kotlinc-jvm \
+#  -cp $CP:target/classes -verbose -d target/classes \
+#  src/main/kotlin/*.kt src/test/kotlin/*.kt
+$NAILGUN_DIR/ng \
+  org.jetbrains.kotlin.preloading.Preloader \
+  org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+  src/main/kotlin/*.kt src/test/kotlin/*.kt \
+  -d $PWD/target/classes \
+  -cp $CP:`cat .mvn-classpath`:target/classes
+
+CP=$CP:~/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+CP=$CP:~/.m2/repository/org/jetbrains/kotlin/kotlin-runtime/1.0.3/kotlin-runtime-1.0.3.jar
+CP=$CP:~/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.2.41/kotlin-stdlib-1.2.41.jar
+java -cp $CP:target/classes org.junit.runner.JUnitCore \
+  com.danstutzman.kotlinc.tests.KotlincTest
