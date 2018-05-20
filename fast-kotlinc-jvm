@@ -1,0 +1,6 @@
+#!/bin/bash -ex
+CP=target/classes
+CP=$CP:~/.m2/repository/org/jetbrains/kotlin/kotlin-runtime/1.0.3/kotlin-runtime-1.0.3.jar
+CP=$CP:~/.m2/repository/org/antlr/antlr4-runtime/4.7/antlr4-runtime-4.7.jar
+CP=$CP:~/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.2.41/kotlin-stdlib-1.2.41.jar
+java -cp $CP com.danstutzman.kotlinc.KotlincKt "$@"
