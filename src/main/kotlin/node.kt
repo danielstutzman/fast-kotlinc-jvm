@@ -4,7 +4,7 @@ sealed class Node {
   data class Class(
     val name: String,
     val parentPath: String,
-    val methods: Array<Method>
+    val methods: List<Method>
   ): Node() {
     override fun toString(): String =
       "Class $name $parentPath\n" +
@@ -15,7 +15,7 @@ sealed class Node {
     val name: String,
     val type: String,
     val access: Int,
-    val statements: Array<Expr>
+    val statements: List<Expr>
   ): Node() {
     override fun toString(): String =
       "Method $name $type $access\n" +
@@ -30,7 +30,7 @@ sealed class Node {
     }
 
     data class InvokeSuper(
-      val args: Array<Expr>
+      val args: List<Expr>
     ): Expr() {
       override fun toString(): String = "super(...)" +
         args.map { it -> "      $it" }.joinToString("\n")
@@ -47,7 +47,7 @@ sealed class Node {
     data class Call(
       val name: String,
       val receiver: Expr,
-      val args: Array<Expr>
+      val args: List<Expr>
     ): Expr() {
       override fun toString(): String = "Call $name on" +
         "\n      $receiver" +

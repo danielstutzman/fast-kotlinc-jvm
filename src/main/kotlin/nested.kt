@@ -43,7 +43,7 @@ sealed class Nested {
       val objectExpr: Expr,
       val methodName: String,
       val methodType: String,
-      val args: Array<Expr>
+      val args: List<Expr>
     ): Expr() {
       override fun toString(): String =
         "InvokeVirtual $classPath $methodName $methodType\n" +
@@ -72,7 +72,7 @@ sealed class Nested {
   data class Class(
     val name: String,
     val parentPath: String,
-    val methods: Array<Method>
+    val methods: List<Method>
   ): Nested() {
     override fun toString(): String =
       "Class $name $parentPath\n" +

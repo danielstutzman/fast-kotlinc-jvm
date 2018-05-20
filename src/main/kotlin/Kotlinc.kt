@@ -40,7 +40,7 @@ fun resolveClass(className: String, fileContents: FileContents): Nested.Class {
   return Nested.Class(
     className,
     "java/lang/Object",
-    arrayOf(constructor_, resolveFunDec(fileContents.child as FunDec))
+    listOf(constructor_, resolveFunDec(fileContents.child as FunDec))
   )
 }
 
@@ -62,7 +62,7 @@ fun resolveExpr(expr: Ast): Nested.Expr {
         Nested.Expr.Field(
           "java/lang/System", "out", "Ljava/io/PrintStream;"),
         "println", "(Ljava/lang/String;)V",
-        arrayOf(resolveExpr(expr.arg0))
+        listOf(resolveExpr(expr.arg0))
       )
     } else {
       throw RuntimeException("Unknown methodName ${expr.methodName}")

@@ -79,7 +79,7 @@ sealed class Bytecode {
     val codeIndex: Int, // to pool entry index of type UTF8 with value "code"
     val maxStack: Int,
     val maxLocals: Int,
-    val instructions: Array<Instruction>
+    val instructions: List<Instruction>
   ): Bytecode() {
     override fun toString(): String =
       "Method $name $type $accessFlags\n" +

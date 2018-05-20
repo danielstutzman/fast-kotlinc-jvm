@@ -127,28 +127,28 @@ class Flattener {
 			maxStack = 2, // TODO
 			maxLocals = 2, // TODO
       instructions = flattenI9n(method.returnExpr) +
-        arrayOf(Bytecode.Instruction.return_),
+        listOf(Bytecode.Instruction.return_),
 			codeIndex = addUtf("Code")
 		)
 	}
 
-  fun flattenI9n(i9n: Nested.Expr): Array<Bytecode.Instruction> {
+  fun flattenI9n(i9n: Nested.Expr): List<Bytecode.Instruction> {
     if (i9n is Nested.Expr.Class) {
       val classIdx = addClass(addUtf(i9n.classPath))
-      return arrayOf(Bytecode.Instruction.ldc(classIdx))
+      return listOf(Bytecode.Instruction.ldc(classIdx))
 
     } else if (i9n is Nested.Expr.ConstantString) {
-      return arrayOf(Bytecode.Instruction.ldc(addString(addUtf(i9n.string))))
+      return listOf(Bytecode.Instruction.ldc(addString(addUtf(i9n.string))))
 
     } else if (i9n == Nested.Expr.SuperInConstructor) {
-      return arrayOf(Bytecode.Instruction.aload(0))
+      return listOf(Bytecode.Instruction.aload(0))
 
     } else if (i9n is Nested.Expr.Field) {
       val classIdx = addClass(addUtf(i9n.classPath))
       val nameAndTypeIdx =
         addNameAndType(Pair(addUtf(i9n.fieldName), addUtf(i9n.fieldType)))
       val fieldrefIdx = addFieldref(Pair(classIdx, nameAndTypeIdx))
-      return arrayOf(Bytecode.Instruction.getstatic(fieldrefIdx))
+      return listOf(Bytecode.Instruction.getstatic(fieldrefIdx))
 
     } else if (i9n is Nested.Expr.InvokeSpecial) {
       val classIdx = addClass(addUtf(i9n.classPath))
@@ -156,7 +156,7 @@ class Flattener {
         addNameAndType(Pair(addUtf(i9n.methodName), addUtf(i9n.methodType)))
       val methodrefIdx = addMethodref(Pair(classIdx, nameAndTypeIdx))
       return flattenI9n(i9n.objectExpr) +
-        arrayOf(Bytecode.Instruction.invokespecial(methodrefIdx))
+        listOf(Bytecode.Instruction.invokespecial(methodrefIdx))
 
     } else if (i9n is Nested.Expr.InvokeVirtual) {
       val classIdx = addClass(addUtf(i9n.classPath))
@@ -164,11 +164,11 @@ class Flattener {
         addNameAndType(Pair(addUtf(i9n.methodName), addUtf(i9n.methodType)))
 			val methodrefIdx = addMethodref(Pair(classIdx, nameAndTypeIdx))
       return flattenI9n(i9n.objectExpr) +
-        i9n.args.flatMap { flattenI9n(it).toList() } +
-        arrayOf(Bytecode.Instruction.invokevirtual(methodrefIdx))
+        i9n.args.flatMap { flattenI9n(it) } +
+        listOf(Bytecode.Instruction.invokevirtual(methodrefIdx))
 
     } else if (i9n is Nested.Expr.Sequence) {
-      return i9n.exprs.flatMap { flattenI9n(it).toList() }.toTypedArray()
+      return i9n.exprs.flatMap { flattenI9n(it) }
 
     } else {
       throw RuntimeException("Unknown instruction ${i9n::class}")
