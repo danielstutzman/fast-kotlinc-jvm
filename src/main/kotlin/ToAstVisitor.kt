@@ -6,6 +6,7 @@ import com.github.sarahbuisson.kotlinparser.KotlinParserBaseVisitor
 interface Ast
 data class FileContents(val child: Ast): Ast
 data class FunDec(val name: String, val returnExpr: Ast): Ast
+data class Sequence(val exprs: List<Ast>): Ast
 data class Call(val methodName: String, val arg0: Ast): Ast
 data class StringConstant(val s: String): Ast
 
@@ -32,8 +33,13 @@ class ToAstVisitor: KotlinParserBaseVisitor<Ast>() {
     ctx: KotlinParser.FunctionBodyContext
   ): Ast = visit(ctx.block())
 
-  override fun visitBlock(ctx: KotlinParser.BlockContext): Ast =
-    visit(ctx.statement().single())
+  override fun visitBlock(ctx: KotlinParser.BlockContext): Ast {
+    if (ctx.statement().size == 1) {
+      return visit(ctx.statement().single())
+    } else {
+      return Sequence(ctx.statement().map { visit(it) })
+    }
+  }
 
   override fun visitStatement(ctx: KotlinParser.StatementContext): Ast =
     visit(ctx.expression())

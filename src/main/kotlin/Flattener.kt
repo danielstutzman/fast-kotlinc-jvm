@@ -167,6 +167,9 @@ class Flattener {
         i9n.args.flatMap { flattenI9n(it).toList() } +
         arrayOf(Bytecode.Instruction.invokevirtual(methodrefIdx))
 
+    } else if (i9n is Nested.Expr.Sequence) {
+      return i9n.exprs.flatMap { flattenI9n(it).toList() }.toTypedArray()
+
     } else {
       throw RuntimeException("Unknown instruction ${i9n::class}")
     }

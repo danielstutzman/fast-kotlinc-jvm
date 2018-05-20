@@ -50,6 +50,12 @@ sealed class Nested {
           "      $objectExpr" +
           args.map { it -> "\n      $it" }.joinToString()
     }
+
+    data class Sequence(val exprs: List<Expr>): Expr() {
+      override fun toString(): String =
+        "Sequence\n" +
+          exprs.map { it -> "\n      $it" }.joinToString()
+    }
   }
 
   data class Method(

@@ -69,6 +69,8 @@ fun resolveExpr(expr: Ast): Nested.Expr {
     }
   } else if (expr is StringConstant) {
     return Nested.Expr.ConstantString(expr.s)
+  } else if (expr is Sequence) {
+    return Nested.Expr.Sequence(expr.exprs.map { resolveExpr(it) })
   } else {
     throw RuntimeException("Unknown Ast ${expr::class}")
   }
