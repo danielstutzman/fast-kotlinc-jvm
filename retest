@@ -25,7 +25,8 @@ CP=$CP:~/.m2/repository/junit/junit/4.12/junit-4.12.jar
 $NAILGUN_DIR/ng \
   org.jetbrains.kotlin.preloading.Preloader \
   org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
-  src/main/kotlin/*.kt src/test/kotlin/*.kt \
+  `find src/main/kotlin -name *.kt` \
+  `find src/test/kotlin -name *.kt` \
   -d $PWD/target/classes \
   -cp $CP:`cat .mvn-classpath`:target/classes
 
@@ -34,3 +35,6 @@ CP=$CP:~/.m2/repository/org/jetbrains/kotlin/kotlin-runtime/1.0.3/kotlin-runtime
 CP=$CP:~/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.2.41/kotlin-stdlib-1.2.41.jar
 java -cp $CP:target/classes org.junit.runner.JUnitCore \
   com.danstutzman.kotlinc.tests.KotlincTest
+
+CP=$CP:~/.m2/repository/org/ow2/asm/asm-all/5.1/asm-all-5.1.jar
+java -cp $CP:target/classes com.danstutzman.kotlinc.decompile.ClassPrinterDemoKt
