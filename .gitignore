@@ -4,3 +4,4 @@
 /.mvn-classpath
 /.idea
 /fast-kotlinc-jvm.iml
+/fixtures/output-actual/*.class
