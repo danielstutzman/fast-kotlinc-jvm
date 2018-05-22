@@ -18,29 +18,33 @@ fun main(args: Array<String>) {
   }
   val inputPath = File(args[0])
   val outputPath = File(args[1])
+  val source = inputPath.readText()
+  val bytecode = sourceToBytecode(inputPath.getName(), source)
 
-  val kotlinLexer = KotlinLexer(CharStreams.fromString(inputPath.readText()))
+  FileOutputStream(outputPath).use { stream ->
+    stream.write(bytecode)
+  }
+  println(outputPath)
+}
+
+fun sourceToBytecode(filename: String, source: String): ByteArray {
+  val kotlinLexer = KotlinLexer(CharStreams.fromString(source))
   val commonTokenStream = CommonTokenStream(kotlinLexer)
   val kotlinParser = KotlinParser(commonTokenStream)
   val tree = kotlinParser.kotlinFile()
   val visitor = ToAstVisitor()
   val fileContents = visitor.visit(tree) as FileContents
-  val className = filenameToClassName(inputPath.getName())
+  val className = filenameToClassName(filename)
   val resolved = resolveClass(className, fileContents)
-  val bytecode = flattenClass(resolved)
-
-  DataOutputStream(FileOutputStream(outputPath)).use { stream ->
-    bytecode.write(stream)
-  }
-  println(outputPath)
+  return flattenClass(resolved)
 }
 
 fun filenameToClassName(filename: String): String =
   filename.substring(0, 1).toUpperCase() +
-  filename.substring(1).replace("\\.kt$", "Kt")
+  filename.substring(1).replace(Regex("\\.kt$"), "Kt")
 
 fun resolveClass(className: String, fileContents: FileContents): Nested.Class {
-  val constructor_ = Nested.Method(
+  val _constructor_ = Nested.Method(
     "<init>", listOf<Type>(), AccessFlags(public=true),
       Nested.Expr.InvokeSpecial(
         "java/lang/Object", Nested.Expr.SuperInConstructor,
@@ -49,7 +53,7 @@ fun resolveClass(className: String, fileContents: FileContents): Nested.Class {
   return Nested.Class(
     className,
     "java/lang/Object",
-    listOf(constructor_, resolveFunDec(fileContents.child as FunDec))
+    listOf(resolveFunDec(fileContents.child as FunDec))
   )
 }
 
@@ -70,7 +74,7 @@ fun resolveExpr(expr: Ast): Nested.Expr {
         "java/io/PrintStream",
         Nested.Expr.Field(
           "java/lang/System", "out", "Ljava/io/PrintStream;"),
-        "println", "(Ljava/lang/String;)V",
+        "println", "(Ljava/lang/Object;)V",
         listOf(resolveExpr(expr.arg0))
       )
     } else {

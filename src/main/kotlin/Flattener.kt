@@ -1,177 +1,63 @@
 package com.danstutzman.kotlinc
 
 import java.util.SortedMap
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
-typealias UtfIdx = Int
-typealias StringIdx = Int
-typealias ClassIdx = Int
-typealias NameAndTypeIdx = Int
-typealias FieldrefIdx = Int
-typealias MethodrefIdx = Int
-
-fun flattenClass(class_: Nested.Class): Bytecode.Class {
-  val flattener = Flattener()
-  val thisClass = flattener.addClass(flattener.addUtf(class_.name))
-  val parentClass = flattener.addClass(flattener.addUtf(class_.parentPath))
-  val methods = class_.methods.map { flattener.flattenMethod(it) }
-  return Bytecode.Class(
-    constantPool = flattener.getConstantPool(),
-    accessFlags = AccessFlags(public=true),
-    thisClass = thisClass,
-    parentClass = parentClass,
-    methods = methods
-  )
+fun flattenClass(class_: Nested.Class): ByteArray {
+  val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+  cw.visit(Opcodes.V1_5,
+    Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL + Opcodes.ACC_SUPER,
+    class_.name, null, class_.parentPath, null)
+  for (method in class_.methods) {
+    flattenMethod(method, cw)
+  }
+  cw.visitEnd()
+  return cw.toByteArray()
 }
 
-class Flattener {
-  var nextIdx = 1
-  val utfs = HashMap<String, UtfIdx>()
-  val strings = HashMap<UtfIdx, StringIdx>()
-  val classes = HashMap<UtfIdx, ClassIdx>()
-  val nameAndTypes = HashMap<Pair<UtfIdx, UtfIdx>, NameAndTypeIdx>()
-  val fieldrefs = HashMap<Pair<ClassIdx, NameAndTypeIdx>, FieldrefIdx>()
-	val methodrefs = HashMap<Pair<ClassIdx, NameAndTypeIdx>, MethodrefIdx>()
+fun flattenMethod(method: Nested.Method, cw: ClassWriter) {
+  val descriptor = "(" +
+    method.paramTypes.map { it.toDescriptor() }.joinToString("") +
+    ")" + "V"
+  val access = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL
+  val mw = cw.visitMethod(access, method.name, descriptor, null, null)
+  flattenI9n(method.returnExpr, mw)
+  mw.visitInsn(Opcodes.RETURN)
+  mw.visitMaxs(0, 0) // computes automatically
+  mw.visitEnd()
+}
 
-  fun addUtf(s: String): UtfIdx {
-    var utfIdx = utfs.get(s)
-    if (utfIdx == null) {
-      utfIdx = nextIdx
-      utfs.put(s, utfIdx)
-      nextIdx += 1
-    }
-    return utfIdx
-  }
+fun flattenI9n(i9n: Nested.Expr, mw: MethodVisitor) {
+  if (i9n is Nested.Expr.Class) {
+    mw.visitLdcInsn(i9n.classPath)
 
-  fun addString(utfIdx: UtfIdx): UtfIdx {
-    var stringIdx = strings.get(utfIdx)
-    if (stringIdx == null) {
-      stringIdx = nextIdx
-      strings.put(utfIdx, stringIdx)
-      nextIdx += 1
-    }
-    return stringIdx
-  }
+  } else if (i9n is Nested.Expr.ConstantString) {
+    mw.visitLdcInsn(i9n.string)
 
-  fun addClass(utfIdx: UtfIdx): ClassIdx {
-    var classIdx = classes.get(utfIdx)
-    if (classIdx == null) {
-      classIdx = nextIdx
-      classes.put(utfIdx, classIdx)
-      nextIdx += 1
-    }
-    return classIdx
-  }
+  } else if (i9n == Nested.Expr.SuperInConstructor) {
+    mw.visitVarInsn(Opcodes.ALOAD, 0)
 
-  fun addNameAndType(key: Pair<UtfIdx, UtfIdx>): NameAndTypeIdx {
-    var nameAndTypeIdx = nameAndTypes.get(key)
-    if (nameAndTypeIdx == null) {
-      nameAndTypeIdx = nextIdx
-      nameAndTypes.put(key, nameAndTypeIdx)
-      nextIdx += 1
-    }
-    return nameAndTypeIdx
-  }
+  } else if (i9n is Nested.Expr.Field) {
+    mw.visitFieldInsn(Opcodes.GETSTATIC, i9n.classPath, i9n.fieldName,
+      i9n.fieldType)
 
-  fun addFieldref(key: Pair<ClassIdx, NameAndTypeIdx>): FieldrefIdx {
-    var fieldrefIdx = fieldrefs.get(key)
-    if (fieldrefIdx == null) {
-      fieldrefIdx = nextIdx
-      fieldrefs.put(key, fieldrefIdx)
-      nextIdx += 1
-    }
-    return fieldrefIdx
-  }
+  } else if (i9n is Nested.Expr.InvokeSpecial) {
+    flattenI9n(i9n.objectExpr, mw)
+    mw.visitMethodInsn(Opcodes.INVOKESPECIAL, i9n.classPath, i9n.methodName,
+      i9n.methodType, false)
 
-  fun addMethodref(key: Pair<ClassIdx, NameAndTypeIdx>): MethodrefIdx {
-    var methodrefIdx = methodrefs.get(key)
-    if (methodrefIdx == null) {
-      methodrefIdx = nextIdx
-      methodrefs.put(key, methodrefIdx)
-      nextIdx += 1
-    }
-    return methodrefIdx
-  }
+  } else if (i9n is Nested.Expr.InvokeVirtual) {
+    flattenI9n(i9n.objectExpr, mw)
+    i9n.args.forEach { flattenI9n(it, mw) }
+    mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, i9n.classPath, i9n.methodName,
+      i9n.methodType, false)
 
-  fun getConstantPool(): SortedMap<Int, Bytecode.Entry> {
-    val pool = sortedMapOf<Int, Bytecode.Entry>()
-    for ((s, utfIdx) in utfs) {
-      pool.put(utfIdx, Bytecode.Entry.Utf8(s))
-    }
-    for ((utfIdx, stringIdx) in strings) {
-      pool.put(stringIdx, Bytecode.Entry.StringEntry(utfIdx))
-    }
-    for ((utfIdx, classIdx) in classes) {
-      pool.put(classIdx, Bytecode.Entry.ClassEntry(utfIdx))
-    }
-    for ((pair, nameAndTypeIdx) in nameAndTypes) {
-      pool.put(nameAndTypeIdx,
-        Bytecode.Entry.NameAndType(pair.first, pair.second))
-    }
-    for ((pair, fieldrefIdx) in fieldrefs) {
-      pool.put(fieldrefIdx, Bytecode.Entry.Fieldref(pair.first, pair.second))
-    }
-    for ((pair, methodrefIdx) in methodrefs) {
-      pool.put(methodrefIdx, Bytecode.Entry.Methodref(pair.first, pair.second))
-    }
-    return pool
-  }
+  } else if (i9n is Nested.Expr.Sequence) {
+    i9n.exprs.forEach { flattenI9n(it, mw) }
 
-  fun flattenMethod(method: Nested.Method): Bytecode.Method {
-	  val descriptor = "(" +
-      method.paramTypes.map { it.toDescriptor() }.joinToString("") +
-      ")" + "V"
-		return Bytecode.Method(
-			name = addUtf(method.name),
-			type = addUtf(descriptor),
-			accessFlags = method.accessFlags,
-			maxStack = 2, // TODO
-			maxLocals = 2, // TODO
-      instructions = flattenI9n(method.returnExpr) +
-        listOf(Bytecode.Instruction.return_),
-			codeIndex = addUtf("Code")
-		)
-	}
-
-  fun flattenI9n(i9n: Nested.Expr): List<Bytecode.Instruction> {
-    if (i9n is Nested.Expr.Class) {
-      val classIdx = addClass(addUtf(i9n.classPath))
-      return listOf(Bytecode.Instruction.ldc(classIdx))
-
-    } else if (i9n is Nested.Expr.ConstantString) {
-      return listOf(Bytecode.Instruction.ldc(addString(addUtf(i9n.string))))
-
-    } else if (i9n == Nested.Expr.SuperInConstructor) {
-      return listOf(Bytecode.Instruction.aload(0))
-
-    } else if (i9n is Nested.Expr.Field) {
-      val classIdx = addClass(addUtf(i9n.classPath))
-      val nameAndTypeIdx =
-        addNameAndType(Pair(addUtf(i9n.fieldName), addUtf(i9n.fieldType)))
-      val fieldrefIdx = addFieldref(Pair(classIdx, nameAndTypeIdx))
-      return listOf(Bytecode.Instruction.getstatic(fieldrefIdx))
-
-    } else if (i9n is Nested.Expr.InvokeSpecial) {
-      val classIdx = addClass(addUtf(i9n.classPath))
-      val nameAndTypeIdx =
-        addNameAndType(Pair(addUtf(i9n.methodName), addUtf(i9n.methodType)))
-      val methodrefIdx = addMethodref(Pair(classIdx, nameAndTypeIdx))
-      return flattenI9n(i9n.objectExpr) +
-        listOf(Bytecode.Instruction.invokespecial(methodrefIdx))
-
-    } else if (i9n is Nested.Expr.InvokeVirtual) {
-      val classIdx = addClass(addUtf(i9n.classPath))
-      val nameAndTypeIdx =
-        addNameAndType(Pair(addUtf(i9n.methodName), addUtf(i9n.methodType)))
-			val methodrefIdx = addMethodref(Pair(classIdx, nameAndTypeIdx))
-      return flattenI9n(i9n.objectExpr) +
-        i9n.args.flatMap { flattenI9n(it) } +
-        listOf(Bytecode.Instruction.invokevirtual(methodrefIdx))
-
-    } else if (i9n is Nested.Expr.Sequence) {
-      return i9n.exprs.flatMap { flattenI9n(it) }
-
-    } else {
-      throw RuntimeException("Unknown instruction ${i9n::class}")
-    }
+  } else {
+    throw RuntimeException("Unknown instruction ${i9n::class}")
   }
 }

@@ -62,6 +62,8 @@ class MethodPrinter(
       i9ns.add(Invokespecial(owner, name, desc))
     } else if (opcode == Opcodes.INVOKEVIRTUAL) {
       i9ns.add(Invokevirtual(owner, name, desc))
+    } else if (opcode == Opcodes.INVOKESTATIC) {
+      i9ns.add(Invokestatic(owner, name, desc))
     } else {
       throw RuntimeException("Can't visitMethodInsn for opcode $opcode")
     }

@@ -1,4 +1,3 @@
-fun main() {
+fun main(args: Array<String>) {
   println("1")
-  println("2")
 }
