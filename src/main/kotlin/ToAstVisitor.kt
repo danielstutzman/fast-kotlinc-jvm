@@ -9,6 +9,7 @@ data class FunDec(val name: String, val returnExpr: Ast): Ast
 data class Sequence(val exprs: List<Ast>): Ast
 data class Call(val methodName: String, val arg0: Ast): Ast
 data class StringConstant(val s: String): Ast
+data class Plus(val child1: Ast, val child2: Ast): Ast
 
 class ToAstVisitor: KotlinParserBaseVisitor<Ast>() {
   override fun visitKotlinFile(ctx: KotlinParser.KotlinFileContext): Ast {
@@ -74,9 +75,18 @@ class ToAstVisitor: KotlinParserBaseVisitor<Ast>() {
     ctx: KotlinParser.RangeExpressionContext
   ): Ast = visit(ctx.additiveExpression().single())
 
+  // : multiplicativeExpression (additiveOperator NL* multiplicativeExpression)*
   override fun visitAdditiveExpression(
     ctx: KotlinParser.AdditiveExpressionContext
-  ): Ast = visit(ctx.multiplicativeExpression().single())
+  ): Ast =
+    if (ctx.multiplicativeExpression().size == 1)
+      visit(ctx.multiplicativeExpression().single())
+    else if (ctx.multiplicativeExpression().size == 2)
+      Plus(
+        visit(ctx.multiplicativeExpression(0)),
+        visit(ctx.multiplicativeExpression(1)))
+    else
+      throw RuntimeException("Too many multiplicativeExpressions")
 
   override fun visitMultiplicativeExpression(
     ctx: KotlinParser.MultiplicativeExpressionContext

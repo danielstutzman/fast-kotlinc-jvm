@@ -69,6 +69,10 @@ sealed class Nested {
         if (exprs.size > 0) exprs.last().getType() else Type.VoidType
     }
 
+    data class New(val classPath: String): Expr() {
+      override fun getType() = Type.VoidType
+    }
+
     abstract fun getType(): Type
   }
 

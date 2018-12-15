@@ -60,5 +60,6 @@ class KotlincTest {
     runKotlin("fixtures/input/hello.kt", "main")
     assertEquals(null, runKotlin("fixtures/input/f1.kt", "f1"))
     assertEquals("abc", runKotlin("fixtures/input/f2.kt", "f2"))
+    assertEquals("abcdef", runKotlin("fixtures/input/f3.kt", "f3"))
   }
 }

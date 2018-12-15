@@ -80,6 +80,16 @@ fun flattenI9n(i9n: Nested.Expr, mw: MethodVisitor) {
   } else if (i9n is Nested.Expr.Sequence) {
     i9n.exprs.forEach { flattenI9n(it, mw) }
 
+  } else if (i9n is Nested.Expr.New) {
+    println("    NEW ${i9n.classPath}")
+    mw.visitTypeInsn(Opcodes.NEW, i9n.classPath)
+    println("    DUP")
+    mw.visitInsn(Opcodes.DUP)
+    println(
+      "    INVOKESPECIAL ${i9n.classPath} <init> ()V")
+    mw.visitMethodInsn(
+      Opcodes.INVOKESPECIAL, i9n.classPath, "<init>", "()V", false)
+
   } else {
     throw RuntimeException("Unknown instruction ${i9n::class}")
   }
