@@ -78,15 +78,13 @@ class ToAstVisitor: KotlinParserBaseVisitor<Ast>() {
   // : multiplicativeExpression (additiveOperator NL* multiplicativeExpression)*
   override fun visitAdditiveExpression(
     ctx: KotlinParser.AdditiveExpressionContext
-  ): Ast =
-    if (ctx.multiplicativeExpression().size == 1)
-      visit(ctx.multiplicativeExpression().single())
-    else if (ctx.multiplicativeExpression().size == 2)
-      Plus(
-        visit(ctx.multiplicativeExpression(0)),
-        visit(ctx.multiplicativeExpression(1)))
-    else
-      throw RuntimeException("Too many multiplicativeExpressions")
+  ): Ast {
+    var out = visit(ctx.multiplicativeExpression(0))
+    for (i in 1..ctx.multiplicativeExpression().size - 1) {
+      out = Plus(out, visit(ctx.multiplicativeExpression(i)))
+    }
+    return out
+  }
 
   override fun visitMultiplicativeExpression(
     ctx: KotlinParser.MultiplicativeExpressionContext

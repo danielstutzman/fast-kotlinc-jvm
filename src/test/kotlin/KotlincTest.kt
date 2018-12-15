@@ -80,7 +80,7 @@ class KotlincTest {
   }
 
   @Test fun helloWorld() {
-    if (false) {
+    if (true) {
       runKotlin("fixtures/input/hello.kt", "main")
       printTime()
       assertEquals(null, runKotlin("fixtures/input/f1.kt", "f1"))
@@ -88,6 +88,8 @@ class KotlincTest {
       assertEquals("abc", runKotlin("fixtures/input/f2.kt", "f2"))
       printTime()
       assertEquals("abcdef", runKotlin("fixtures/input/f3.kt", "f3"))
+      printTime()
+      assertEquals("abc", runKotlin("fixtures/input/f4.kt", "f4"))
       printTime()
     } else {
       printTime()
