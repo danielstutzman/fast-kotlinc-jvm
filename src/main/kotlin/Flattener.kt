@@ -21,12 +21,26 @@ fun flattenClass(class_: Nested.Class): ByteArray {
 fun flattenMethod(method: Nested.Method, cw: ClassWriter) {
   val descriptor = "(" +
     method.paramTypes.map { it.toDescriptor() }.joinToString("") +
-    ")" + "V"
+    ")" + method.returnType.toDescriptor()
   val access = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL
   println("  Method ${method.name} ${descriptor}")
   val mw = cw.visitMethod(access, method.name, descriptor, null, null)
+
   flattenI9n(method.returnExpr, mw)
-  mw.visitInsn(Opcodes.RETURN)
+
+  when (method.returnExpr.getType()) {
+    Type.VoidType -> {
+      println("    RETURN")
+      mw.visitInsn(Opcodes.RETURN)
+    }
+    Type.StringType -> {
+      println("    ARETURN")
+      mw.visitInsn(Opcodes.ARETURN)
+    }
+    else -> throw RuntimeException(
+      "Can't return with type ${method.returnExpr.getType()}")
+  }
+
   mw.visitMaxs(0, 0) // computes automatically
   mw.visitEnd()
 }

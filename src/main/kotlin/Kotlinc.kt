@@ -66,10 +66,10 @@ fun filenameToClassName(filename: String): String =
 
 fun resolveClass(className: String, fileContents: FileContents): Nested.Class {
   val _constructor_ = Nested.Method(
-    "<init>", listOf<Type>(), AccessFlags(public=true),
+    "<init>", listOf<Type>(), AccessFlags(public=true), Type.VoidType,
       Nested.Expr.InvokeSpecial(
         "java/lang/Object", Nested.Expr.SuperInConstructor,
-        "<init>", "()V")
+        "<init>", "()V", Type.VoidType)
     )
   return Nested.Class(
     className,
@@ -79,12 +79,14 @@ fun resolveClass(className: String, fileContents: FileContents): Nested.Class {
 }
 
 fun resolveFunDec(funDec: FunDec): Nested.Method {
-  val paramTypes = listOf(Type.Array(Type.StringType))
+  val paramTypes = listOf<Type>() //listOf(Type.Array(Type.StringType))
+  val returnExpr = resolveExpr(funDec.returnExpr)
   return Nested.Method(
     funDec.name,
     paramTypes,
     AccessFlags(public=true, static=true),
-    resolveExpr(funDec.returnExpr)
+    returnExpr.getType(),
+    returnExpr
   )
 }
 
@@ -94,8 +96,9 @@ fun resolveExpr(expr: Ast): Nested.Expr {
       return Nested.Expr.InvokeVirtual(
         "java/io/PrintStream",
         Nested.Expr.Field(
-          "java/lang/System", "out", "Ljava/io/PrintStream;"),
+          "java/lang/System", "out", "Ljava/io/PrintStream;", Type.VoidType),
         "println", "(Ljava/lang/Object;)V",
+        Type.VoidType,
         listOf(resolveExpr(expr.arg0))
       )
     } else {

@@ -11,6 +11,11 @@ sealed class Type {
     override fun toDescriptor(): String = "[" + subtype.toDescriptor()
   }
 
+  object VoidType: Type() {
+    override fun toString(): String = "V"
+    override fun toDescriptor(): String = "V"
+  }
+
   override abstract fun toString(): String
   abstract fun toDescriptor(): String
 }

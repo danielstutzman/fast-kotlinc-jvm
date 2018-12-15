@@ -43,12 +43,12 @@ fun loadClass(className: String?, b: ByteArray): Class<*> {
 	return clazz
 }
 
-fun runKotlin(path: String, methodName: String) {
+fun runKotlin(path: String, methodName: String): Any? {
   val source = File(path).readText()
   val bytecode = sourceToBytecode(path.split("/").last(), source)
   val class_ = loadClass(null, bytecode)
-  val method = class_.getMethod(methodName, Array<String>::class.java)
-  method.invoke(null, arrayOf<String>())
+  val method = class_.getMethod(methodName) //Array<String>::class.java)
+  return method.invoke(null) //arrayOf<String>())
 }
 
 class KotlincTest {
@@ -58,6 +58,7 @@ class KotlincTest {
 
   @Test fun helloWorld() {
     runKotlin("fixtures/input/hello.kt", "main")
-    runKotlin("fixtures/input/f1.kt", "f1")
+    assertEquals(null, runKotlin("fixtures/input/f1.kt", "f1"))
+    assertEquals("abc", runKotlin("fixtures/input/f2.kt", "f2"))
   }
 }
