@@ -77,7 +77,7 @@ fun filenameToClassName(filename: String): String =
   filename.substring(0, 1).toUpperCase() +
   filename.substring(1).replace(Regex("\\.kt$"), "Kt")
 
-fun resolveClass(className: String, fileContents: FileContents): Nested.Class {
+public fun resolveClass(className: String, fileContents: FileContents): Nested.Class {
   val _constructor_ = Nested.Method(
     "<init>", listOf<Type>(), AccessFlags(public=true), Type.VoidType,
       Nested.Expr.InvokeSpecial(

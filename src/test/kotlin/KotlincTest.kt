@@ -1,13 +1,17 @@
 package com.danstutzman.kotlinc.tests
 
+import com.danstutzman.kotlinc.AccessFlags
 import com.danstutzman.kotlinc.Ast
 import com.danstutzman.kotlinc.astToBytecode
 import com.danstutzman.kotlinc.FileContents
 import com.danstutzman.kotlinc.FunDec
+import com.danstutzman.kotlinc.Nested
 import com.danstutzman.kotlinc.Plus
+import com.danstutzman.kotlinc.resolveClass
 import com.danstutzman.kotlinc.StringConstant
 import com.danstutzman.kotlinc.sourceToBytecode
 import com.danstutzman.kotlinc.ToAstVisitor
+import com.danstutzman.kotlinc.Type
 import com.github.sarahbuisson.kotlinparser.KotlinLexer
 import com.github.sarahbuisson.kotlinparser.KotlinParser
 import java.io.File
@@ -105,4 +109,15 @@ class KotlincTest {
       printTime()
     }
   }
+
+  @Test fun astToNested() {
+    val ast = FileContents(FunDec("f2", StringConstant("abc")))
+    val nested = Nested.Class("F2Kt", "java/lang/Object", listOf(
+			Nested.Method(
+				"f2", listOf<Type>(), AccessFlags(public=true, static=true),
+				Type.StringType, Nested.Expr.ConstantString("abc")
+			)
+		))
+    assertEquals(nested, resolveClass("F2Kt", ast))
+	}
 }
