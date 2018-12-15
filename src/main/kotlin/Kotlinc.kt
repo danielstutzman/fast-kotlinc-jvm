@@ -5,9 +5,13 @@ import com.github.sarahbuisson.kotlinparser.KotlinParser
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
+
+val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
 
 fun main(args: Array<String>) {
   if (args.size != 2) {
@@ -26,6 +30,10 @@ fun main(args: Array<String>) {
     stream.write(bytecode)
   }
   println(outputPath)
+}
+
+fun printTime() {
+  println("TIME: ${LocalDateTime.now().format(formatter)}")
 }
 
 fun printSourceTree(node: ParseTree, indentation: Int) {
@@ -48,10 +56,15 @@ fun sourceToBytecode(filename: String, source: String): ByteArray {
   val tree = kotlinParser.kotlinFile()
   printSourceTree(tree, 0)
 
+  printTime()
   val visitor = ToAstVisitor()
   val fileContents = visitor.visit(tree) as FileContents
   println(fileContents)
 
+  return astToBytecode(filename, fileContents)
+}
+
+fun astToBytecode(filename: String, fileContents: FileContents): ByteArray {
   val className = filenameToClassName(filename)
   val resolved = resolveClass(className, fileContents)
   println(resolved)
