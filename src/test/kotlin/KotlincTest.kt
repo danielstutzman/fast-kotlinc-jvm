@@ -1,5 +1,9 @@
 package com.danstutzman.kotlinc.tests
 
+import com.danstutzman.kotlinc.asm.Class as AsmClass
+import com.danstutzman.kotlinc.asm.convertClass
+import com.danstutzman.kotlinc.asm.Method as AsmMethod
+import com.danstutzman.kotlinc.asm.I9n
 import com.danstutzman.kotlinc.AccessFlags
 import com.danstutzman.kotlinc.Ast
 import com.danstutzman.kotlinc.astToBytecode
@@ -120,4 +124,20 @@ class KotlincTest {
 		))
     assertEquals(nested, resolveClass("F2Kt", ast))
 	}
+
+  @Test fun nestedToAsm() {
+    val nested = Nested.Class("F2Kt", "java/lang/Object", listOf(
+			Nested.Method(
+				"f2", listOf<Type>(), AccessFlags(public=true, static=true),
+				Type.StringType, Nested.Expr.ConstantString("abc")
+			)
+		))
+    val asm = AsmClass("F2Kt", "java/lang/Object", listOf(
+      AsmMethod("()Ljava/lang/String;", listOf(
+        I9n.LdcString("abc"),
+        I9n.Areturn
+      ))
+    ))
+    assertEquals(asm, convertClass(nested))
+  }
 }
