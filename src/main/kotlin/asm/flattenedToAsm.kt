@@ -13,7 +13,7 @@ import com.danstutzman.kotlinc.asm.I9n.LdcString
 import com.danstutzman.kotlinc.asm.I9n.New
 import com.danstutzman.kotlinc.asm.I9n.Return
 
-fun convertClass(c: Nested.Class): Class =
+fun convertClassToAsm(c: Nested.Class): Class =
   Class(c.name, c.parentPath, c.methods.map { convertMethod(it) })
 
 fun convertMethod(m: Nested.Method): Method {
@@ -27,7 +27,7 @@ fun convertMethod(m: Nested.Method): Method {
     else -> throw RuntimeException(
       "Can't return with type ${m.returnExpr.getType()}")
   }
-  return Method(descriptor, bodyI9ns + returnI9n)
+  return Method(m.name, descriptor, bodyI9ns + returnI9n)
 }
 
 fun convertExpr(e: Nested.Expr): List<I9n> =

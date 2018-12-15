@@ -1,16 +1,5 @@
 package com.danstutzman.kotlinc.asm
 
-data class Class(
-  val name: String,
-  val parentPath: String,
-  val methods: List<Method>
-)
-
-data class Method(
-  val descriptor: String,
-  val i9ns: List<I9n>
-)
-
 sealed class I9n {
   object Aload0: I9n()
   object Areturn: I9n()

@@ -1,9 +1,7 @@
 package com.danstutzman.kotlinc.tests
 
-import com.danstutzman.kotlinc.asm.Class as AsmClass
-import com.danstutzman.kotlinc.asm.convertClass
-import com.danstutzman.kotlinc.asm.Method as AsmMethod
-import com.danstutzman.kotlinc.asm.I9n
+import com.danstutzman.kotlinc.asm.convertClassToAsm
+import com.danstutzman.kotlinc.asm.serializeClass
 import com.danstutzman.kotlinc.AccessFlags
 import com.danstutzman.kotlinc.Ast
 import com.danstutzman.kotlinc.astToBytecode
@@ -89,16 +87,16 @@ class KotlincTest {
 
   @Test fun helloWorld() {
     if (true) {
-      runKotlin("fixtures/input/hello.kt", "main")
-      printTime()
-      assertEquals(null, runKotlin("fixtures/input/f1.kt", "f1"))
-      printTime()
+      //runKotlin("fixtures/input/hello.kt", "main")
+      //printTime()
+      //assertEquals(null, runKotlin("fixtures/input/f1.kt", "f1"))
+      //printTime()
       assertEquals("abc", runKotlin("fixtures/input/f2.kt", "f2"))
-      printTime()
-      assertEquals("abcdef", runKotlin("fixtures/input/f3.kt", "f3"))
-      printTime()
-      assertEquals("abc", runKotlin("fixtures/input/f4.kt", "f4"))
-      printTime()
+      //printTime()
+      //assertEquals("abcdef", runKotlin("fixtures/input/f3.kt", "f3"))
+      //printTime()
+      //assertEquals("abc", runKotlin("fixtures/input/f4.kt", "f4"))
+      //printTime()
     } else {
       printTime()
       assertEquals("abc",
@@ -125,19 +123,15 @@ class KotlincTest {
     assertEquals(nested, resolveClass("F2Kt", ast))
 	}
 
-  @Test fun nestedToAsm() {
-    val nested = Nested.Class("F2Kt", "java/lang/Object", listOf(
-			Nested.Method(
-				"f2", listOf<Type>(), AccessFlags(public=true, static=true),
-				Type.StringType, Nested.Expr.ConstantString("abc")
-			)
-		))
-    val asm = AsmClass("F2Kt", "java/lang/Object", listOf(
-      AsmMethod("()Ljava/lang/String;", listOf(
-        I9n.LdcString("abc"),
-        I9n.Areturn
-      ))
-    ))
-    assertEquals(asm, convertClass(nested))
+  @Test fun integrationTest() {
+    val ast = FileContents(FunDec("f4", StringConstant("abc")))
+    val nested = resolveClass("F4Kt", ast)
+    val asm = convertClassToAsm(nested)
+    val bytecode = serializeClass(asm)
+    // File("F4Kt.class").writeBytes(bytecode)
+    val class_ = loadClass(null, bytecode)
+    val method = class_.getMethod("f4")
+    val returned = method.invoke(arrayOf<String>())
+    assertEquals("abc", returned)
   }
 }
