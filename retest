@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 NAILGUN_DIR=../nailgun-nailgun-all-0.9.1
 KOTLINC_DIR=~/dev/kotlinc
 
