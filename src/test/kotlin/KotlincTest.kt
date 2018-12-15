@@ -24,7 +24,7 @@ fun toAst(source: String): Ast {
   return visitor.visit(tree)
 }
 
-fun loadClass(className: String, b: ByteArray): Class<*> {
+fun loadClass(className: String?, b: ByteArray): Class<*> {
 	val loader = ClassLoader.getSystemClassLoader()
 	val cls = Class.forName("java.lang.ClassLoader")
 	val method = cls.getDeclaredMethod(
@@ -43,16 +43,21 @@ fun loadClass(className: String, b: ByteArray): Class<*> {
 	return clazz
 }
 
+fun runKotlin(path: String, methodName: String) {
+  val source = File(path).readText()
+  val bytecode = sourceToBytecode(path.split("/").last(), source)
+  val class_ = loadClass(null, bytecode)
+  val method = class_.getMethod(methodName, Array<String>::class.java)
+  method.invoke(null, arrayOf<String>())
+}
+
 class KotlincTest {
   @Test fun stringLiteral(): Unit {
 		assertEquals(StringConstant("abc"), toAst("\"abc\""))
   }
 
   @Test fun helloWorld() {
-    val source = File("fixtures/input/hello.kt").readText()
-    val bytecode = sourceToBytecode("hello.kt", source)
-		val class_ = loadClass("HelloKt", bytecode)
-    val method = class_.getMethod("main", Array<String>::class.java)
-    method.invoke(null, arrayOf<String>())
+    runKotlin("fixtures/input/hello.kt", "main")
+    runKotlin("fixtures/input/f1.kt", "f1")
   }
 }
