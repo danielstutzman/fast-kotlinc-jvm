@@ -7,6 +7,7 @@ import org.objectweb.asm.Opcodes
 
 fun flattenClass(class_: Nested.Class): ByteArray {
   val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+  println("Class ${class_.name} from ${class_.parentPath}")
   cw.visit(Opcodes.V1_5,
     Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL + Opcodes.ACC_SUPER,
     class_.name, null, class_.parentPath, null)
@@ -22,6 +23,7 @@ fun flattenMethod(method: Nested.Method, cw: ClassWriter) {
     method.paramTypes.map { it.toDescriptor() }.joinToString("") +
     ")" + "V"
   val access = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL
+  println("  Method ${method.name} ${descriptor}")
   val mw = cw.visitMethod(access, method.name, descriptor, null, null)
   flattenI9n(method.returnExpr, mw)
   mw.visitInsn(Opcodes.RETURN)
@@ -31,26 +33,33 @@ fun flattenMethod(method: Nested.Method, cw: ClassWriter) {
 
 fun flattenI9n(i9n: Nested.Expr, mw: MethodVisitor) {
   if (i9n is Nested.Expr.Class) {
+    println("    LDC ${i9n.classPath}")
     mw.visitLdcInsn(i9n.classPath)
 
   } else if (i9n is Nested.Expr.ConstantString) {
+    println("    LDC ${i9n.string}")
     mw.visitLdcInsn(i9n.string)
 
   } else if (i9n == Nested.Expr.SuperInConstructor) {
+    println("    ALOAD 0")
     mw.visitVarInsn(Opcodes.ALOAD, 0)
 
   } else if (i9n is Nested.Expr.Field) {
+    println("    GETSTATIC ${i9n.classPath} ${i9n.fieldName} ${i9n.fieldType}")
     mw.visitFieldInsn(Opcodes.GETSTATIC, i9n.classPath, i9n.fieldName,
       i9n.fieldType)
 
   } else if (i9n is Nested.Expr.InvokeSpecial) {
     flattenI9n(i9n.objectExpr, mw)
+    println(
+      "    INVOKESPECIAL ${i9n.classPath} ${i9n.methodName} ${i9n.methodType}")
     mw.visitMethodInsn(Opcodes.INVOKESPECIAL, i9n.classPath, i9n.methodName,
       i9n.methodType, false)
 
   } else if (i9n is Nested.Expr.InvokeVirtual) {
     flattenI9n(i9n.objectExpr, mw)
     i9n.args.forEach { flattenI9n(it, mw) }
+    println("    INVOKEVIRTUAL ${i9n.classPath} ${i9n.methodName} ${i9n.methodType}")
     mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, i9n.classPath, i9n.methodName,
       i9n.methodType, false)
 
