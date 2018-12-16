@@ -10,6 +10,7 @@ import com.danstutzman.kotlinc.ast.parseSourceToAst
 import com.danstutzman.kotlinc.ast.Plus
 import com.danstutzman.kotlinc.ast.Sequence
 import com.danstutzman.kotlinc.ast.StringConstant
+import com.danstutzman.kotlinc.typed.convertClassToTyped
 import com.github.sarahbuisson.kotlinparser.KotlinLexer
 import com.github.sarahbuisson.kotlinparser.KotlinParser
 import java.io.DataOutputStream
@@ -50,8 +51,10 @@ fun printTime() {
 
 fun astToBytecode(filename: String, fileContents: FileContents): ByteArray {
   val className = filenameToClassName(filename)
-  val resolved = resolveClass(className, fileContents)
-  val asm = convertClassToAsm(resolved)
+  val typed = convertClassToTyped(className, fileContents)
+  println("typed: ${typed}")
+  val asm = convertClassToAsm(typed)
+  println("asm: ${asm}")
   val bytecode = serializeClass(asm)
   return bytecode
 }
@@ -59,79 +62,3 @@ fun astToBytecode(filename: String, fileContents: FileContents): ByteArray {
 fun filenameToClassName(filename: String): String =
   filename.substring(0, 1).toUpperCase() +
   filename.substring(1).replace(Regex("\\.kt$"), "Kt")
-
-public fun resolveClass(className: String, fileContents: FileContents): Nested.Class {
-  val _constructor_ = Nested.Method(
-    "<init>", listOf<Type>(), AccessFlags(public=true), Type.VoidType,
-      Nested.Expr.InvokeSpecial(
-        "java/lang/Object", Nested.Expr.SuperInConstructor,
-        "<init>", "()V", Type.VoidType)
-    )
-  return Nested.Class(
-    className,
-    "java/lang/Object",
-    listOf(resolveFunDec(fileContents.child as FunDec))
-  )
-}
-
-fun resolveFunDec(funDec: FunDec): Nested.Method {
-  val paramTypes = listOf<Type>() //listOf(Type.Array(Type.StringType))
-  val returnExpr = resolveExpr(funDec.returnExpr)
-  return Nested.Method(
-    funDec.name,
-    paramTypes,
-    AccessFlags(public=true, static=true),
-    returnExpr.getType(),
-    returnExpr
-  )
-}
-
-fun resolveExpr(expr: Ast): Nested.Expr {
-  if (expr is Call) {
-    if (expr.methodName == "println") {
-      return Nested.Expr.InvokeVirtual(
-        "java/io/PrintStream",
-        Nested.Expr.Field(
-          "java/lang/System", "out", "Ljava/io/PrintStream;", Type.VoidType),
-        "println", "(Ljava/lang/Object;)V",
-        Type.VoidType,
-        listOf(resolveExpr(expr.arg0))
-      )
-    } else {
-      throw RuntimeException("Unknown methodName ${expr.methodName}")
-    }
-  } else if (expr is StringConstant) {
-    return Nested.Expr.ConstantString(expr.s)
-  } else if (expr is Sequence) {
-    return Nested.Expr.Sequence(expr.exprs.map { resolveExpr(it) })
-  } else if (expr is Plus) {
-		// TODO: Use StringBuilder that gets <init> called instead of making another
-		val appendChild1 = Nested.Expr.InvokeVirtual(
-			"java/lang/StringBuilder",
-			Nested.Expr.New("java/lang/StringBuilder"),
-			"append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;",
-			Type.VoidType,
-			listOf(resolveExpr(expr.child1))
-		)
-		val appendChild2 = Nested.Expr.InvokeVirtual(
-			"java/lang/StringBuilder",
-			appendChild1,
-			"append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;",
-			Type.VoidType,
-			listOf(resolveExpr(expr.child2))
-		)
-		val toString = Nested.Expr.InvokeVirtual(
-			"java/lang/StringBuilder",
-			appendChild2,
-			"toString", "()Ljava/lang/String;",
-			Type.StringType,
-			listOf<Nested.Expr>()
-		)
-    return Nested.Expr.Sequence(listOf(
-			Nested.Expr.New("java/lang/StringBuilder"),
-			toString
-		))
-  } else {
-    throw RuntimeException("Unknown Ast ${expr::class}")
-  }
-}

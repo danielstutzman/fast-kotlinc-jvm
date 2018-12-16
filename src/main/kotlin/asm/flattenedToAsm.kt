@@ -1,6 +1,5 @@
 package com.danstutzman.kotlinc.asm
 
-import com.danstutzman.kotlinc.Nested
 import com.danstutzman.kotlinc.Type
 import com.danstutzman.kotlinc.asm.I9n.Aload0
 import com.danstutzman.kotlinc.asm.I9n.Areturn
@@ -12,11 +11,14 @@ import com.danstutzman.kotlinc.asm.I9n.LdcClasspath
 import com.danstutzman.kotlinc.asm.I9n.LdcString
 import com.danstutzman.kotlinc.asm.I9n.New
 import com.danstutzman.kotlinc.asm.I9n.Return
+import com.danstutzman.kotlinc.typed.Class as TypedClass
+import com.danstutzman.kotlinc.typed.Expr
+import com.danstutzman.kotlinc.typed.Method as TypedMethod
 
-fun convertClassToAsm(c: Nested.Class): Class =
+fun convertClassToAsm(c: TypedClass): Class =
   Class(c.name, c.parentPath, c.methods.map { convertMethod(it) })
 
-fun convertMethod(m: Nested.Method): Method {
+fun convertMethod(m: TypedMethod): Method {
   val descriptor = "(" +
     m.paramTypes.map { it.toDescriptor() }.joinToString("") +
     ")" + m.returnType.toDescriptor()
@@ -30,23 +32,25 @@ fun convertMethod(m: Nested.Method): Method {
   return Method(m.name, descriptor, bodyI9ns + returnI9n)
 }
 
-fun convertExpr(e: Nested.Expr): List<I9n> =
+fun convertExpr(e: Expr): List<I9n> =
   when (e) {
-    is Nested.Expr.Class ->
+    is Expr.Class ->
       listOf(LdcClasspath(e.classPath))
-    is Nested.Expr.ConstantString ->
+    is Expr.ConstantString ->
       listOf(LdcString(e.string))
-    is Nested.Expr.SuperInConstructor ->
+    is Expr.SuperInConstructor ->
       listOf(Aload0)
-    is Nested.Expr.Field ->
+    is Expr.Field ->
       listOf(Getstatic(e.classPath, e.fieldName, e.fieldType))
-    is Nested.Expr.InvokeSpecial ->
+    is Expr.InvokeSpecial ->
       listOf(Invokespecial(e.classPath, e.methodName, e.methodType))
-    is Nested.Expr.InvokeVirtual ->
+    is Expr.InvokeVirtual ->
+      convertExpr(e.objectExpr) +
+      e.args.flatMap { convertExpr(it) } +
       listOf(Invokevirtual(e.classPath, e.methodName, e.methodType))
-    is Nested.Expr.Sequence ->
+    is Expr.Sequence ->
       e.exprs.flatMap { convertExpr(it) }
-    is Nested.Expr.New ->
+    is Expr.New ->
       listOf(New(e.classPath), Dup, Invokespecial(e.classPath, "<init>", "()V"))
     // else -> throw RuntimeException("Unknown expr ${e::class}")
   }

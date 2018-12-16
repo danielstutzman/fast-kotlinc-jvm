@@ -1,17 +1,16 @@
 package com.danstutzman.kotlinc.tests
 
+import com.danstutzman.kotlinc.AccessFlags
+import com.danstutzman.kotlinc.astToBytecode
+import com.danstutzman.kotlinc.filenameToClassName
+import com.danstutzman.kotlinc.Type
 import com.danstutzman.kotlinc.asm.convertClassToAsm
 import com.danstutzman.kotlinc.asm.serializeClass
 import com.danstutzman.kotlinc.ast.FileContents
 import com.danstutzman.kotlinc.ast.FunDec
 import com.danstutzman.kotlinc.ast.parseSourceToAst
 import com.danstutzman.kotlinc.ast.StringConstant
-import com.danstutzman.kotlinc.AccessFlags
-import com.danstutzman.kotlinc.astToBytecode
-import com.danstutzman.kotlinc.filenameToClassName
-import com.danstutzman.kotlinc.Nested
-import com.danstutzman.kotlinc.resolveClass
-import com.danstutzman.kotlinc.Type
+import com.danstutzman.kotlinc.typed.convertClassToTyped
 import com.github.sarahbuisson.kotlinparser.KotlinLexer
 import com.github.sarahbuisson.kotlinparser.KotlinParser
 import java.io.File
@@ -69,21 +68,10 @@ class KotlincTest {
     assertEquals("abc", runKotlin("fixtures/input/f4.kt", "f4"))
   }
 
-  @Test fun astToNested() {
-    val ast = FileContents(FunDec("f2", StringConstant("abc")))
-    val nested = Nested.Class("F2Kt", "java/lang/Object", listOf(
-			Nested.Method(
-				"f2", listOf<Type>(), AccessFlags(public=true, static=true),
-				Type.StringType, Nested.Expr.ConstantString("abc")
-			)
-		))
-    assertEquals(nested, resolveClass("F2Kt", ast))
-	}
-
   @Test fun integrationTest() {
     val ast = FileContents(FunDec("f5", StringConstant("abc")))
-    val nested = resolveClass("F5Kt", ast)
-    val asm = convertClassToAsm(nested)
+    val typed = convertClassToTyped("F5Kt", ast)
+    val asm = convertClassToAsm(typed)
     val bytecode = serializeClass(asm)
     // File("F5Kt.class").writeBytes(bytecode)
     val class_ = loadClass(null, bytecode)
