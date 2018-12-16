@@ -8,9 +8,9 @@ import com.danstutzman.kotlinc.Type
 import kotlin.test.assertEquals
 import org.junit.Test
 
-class flattenedToAsmTest {
-  @Test fun nestedToAsm() {
-    val nested = Class("F2Kt", "java/lang/Object", listOf(
+class typedToAsmTest {
+  @Test fun typedToAsm() {
+    val typed = Class("F2Kt", "java/lang/Object", listOf(
       Method(
         "f2", listOf<Type>(), AccessFlags(public=true, static=true),
         Type.StringType, Expr.ConstantString("abc")
@@ -22,6 +22,6 @@ class flattenedToAsmTest {
         I9n.Areturn
       ))
     ))
-    assertEquals(asm, convertClassToAsm(nested))
+    assertEquals(asm, convertClassToAsm(typed))
   }
 }

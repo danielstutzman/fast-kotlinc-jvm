@@ -36,4 +36,5 @@ CP=$CP:~/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.2.41/kotlin-stdlib-
 CP=$CP:~/.m2/repository/org/ow2/asm/asm-all/5.1/asm-all-5.1.jar
 java -cp $CP:target/classes org.junit.runner.JUnitCore \
   com.danstutzman.kotlinc.tests.KotlincTest \
-  com.danstutzman.kotlinc.asm.flattenedToAsmTest
+  com.danstutzman.kotlinc.asm.typedToAsmTest \
+  com.danstutzman.kotlinc.typed.astToTypedTest

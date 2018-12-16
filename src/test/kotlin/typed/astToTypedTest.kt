@@ -1,4 +1,4 @@
-package com.danstutzman.kotlinc.asm
+package com.danstutzman.kotlinc.typed
 
 import com.danstutzman.kotlinc.AccessFlags
 import com.danstutzman.kotlinc.Type
@@ -12,7 +12,7 @@ import com.danstutzman.kotlinc.typed.Method
 import kotlin.test.assertEquals
 import org.junit.Test
 
-class AstToTypedTest {
+class astToTypedTest {
   @Test fun astToTyped() {
     val ast = FileContents(FunDec("f2", StringConstant("abc")))
     val typed = Class("F2Kt", "java/lang/Object", listOf(
