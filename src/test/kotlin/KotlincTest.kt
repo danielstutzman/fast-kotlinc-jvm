@@ -3,7 +3,6 @@ package com.danstutzman.kotlinc.tests
 import com.danstutzman.kotlinc.AccessFlags
 import com.danstutzman.kotlinc.astToBytecode
 import com.danstutzman.kotlinc.filenameToClassName
-import com.danstutzman.kotlinc.Type
 import com.danstutzman.kotlinc.asm.convertClassToAsm
 import com.danstutzman.kotlinc.asm.serializeClass
 import com.danstutzman.kotlinc.ast.FileContents

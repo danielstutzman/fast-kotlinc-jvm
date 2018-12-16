@@ -1,5 +1,6 @@
 package com.danstutzman.kotlinc.typed
 
+import com.danstutzman.kotlinc.AccessFlags
 import com.danstutzman.kotlinc.ast.Ast
 import com.danstutzman.kotlinc.ast.Call
 import com.danstutzman.kotlinc.ast.FileContents
@@ -8,8 +9,7 @@ import com.danstutzman.kotlinc.ast.parseSourceToAst
 import com.danstutzman.kotlinc.ast.Plus
 import com.danstutzman.kotlinc.ast.Sequence
 import com.danstutzman.kotlinc.ast.StringConstant
-import com.danstutzman.kotlinc.AccessFlags
-import com.danstutzman.kotlinc.Type
+import com.danstutzman.kotlinc.typed.Type
 
 public fun convertClassToTyped(className: String, fileContents: FileContents): Class {
   val _constructor_ = Method(

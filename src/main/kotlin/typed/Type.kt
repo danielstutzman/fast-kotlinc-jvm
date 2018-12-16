@@ -1,4 +1,4 @@
-package com.danstutzman.kotlinc
+package com.danstutzman.kotlinc.typed
 
 sealed class Type {
   object StringType: Type() {

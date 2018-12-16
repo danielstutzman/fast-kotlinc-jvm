@@ -1,6 +1,5 @@
 package com.danstutzman.kotlinc.asm
 
-import com.danstutzman.kotlinc.Type
 import com.danstutzman.kotlinc.asm.I9n.Aload0
 import com.danstutzman.kotlinc.asm.I9n.Areturn
 import com.danstutzman.kotlinc.asm.I9n.Dup
@@ -14,6 +13,7 @@ import com.danstutzman.kotlinc.asm.I9n.Return
 import com.danstutzman.kotlinc.typed.Class as TypedClass
 import com.danstutzman.kotlinc.typed.Expr
 import com.danstutzman.kotlinc.typed.Method as TypedMethod
+import com.danstutzman.kotlinc.typed.Type
 
 fun convertClassToAsm(c: TypedClass): Class =
   Class(c.name, c.parentPath, c.methods.map { convertMethod(it) })

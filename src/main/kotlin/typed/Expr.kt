@@ -1,7 +1,6 @@
 package com.danstutzman.kotlinc.typed
 
 import com.danstutzman.kotlinc.AccessFlags
-import com.danstutzman.kotlinc.Type
 
 sealed class Expr {
   object SuperInConstructor: Expr() {

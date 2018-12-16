@@ -4,7 +4,7 @@ import com.danstutzman.kotlinc.AccessFlags
 import com.danstutzman.kotlinc.typed.Class
 import com.danstutzman.kotlinc.typed.Expr
 import com.danstutzman.kotlinc.typed.Method
-import com.danstutzman.kotlinc.Type
+import com.danstutzman.kotlinc.typed.Type
 import kotlin.test.assertEquals
 import org.junit.Test
 
