@@ -53,6 +53,7 @@ fun runKotlin(path: String, methodName: String): Any? {
   val fileContents = parseSourceToAst(source)
   val bytecode = astToBytecode(
     filenameToClassName(path.split("/").last()), fileContents)
+  // File(path.split("/").last() + ".class").writeBytes(bytecode)
   val class_ = loadClass(null, bytecode)
   val method = class_.getMethod(methodName) //Array<String>::class.java)
   return method.invoke(null) //arrayOf<String>())
