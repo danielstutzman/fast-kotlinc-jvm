@@ -1,5 +1,7 @@
 package com.danstutzman.kotlinc
 
+import com.danstutzman.kotlinc.asm.convertClassToAsm
+import com.danstutzman.kotlinc.asm.serializeClass
 import com.danstutzman.kotlinc.ast.Ast
 import com.danstutzman.kotlinc.ast.Call
 import com.danstutzman.kotlinc.ast.FileContents
@@ -49,10 +51,9 @@ fun printTime() {
 fun astToBytecode(filename: String, fileContents: FileContents): ByteArray {
   val className = filenameToClassName(filename)
   val resolved = resolveClass(className, fileContents)
-  println(resolved)
-
-  val flattened = flattenClass(resolved)
-  return flattened
+  val asm = convertClassToAsm(resolved)
+  val bytecode = serializeClass(asm)
+  return bytecode
 }
 
 fun filenameToClassName(filename: String): String =
