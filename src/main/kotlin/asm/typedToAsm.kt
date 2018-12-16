@@ -52,5 +52,26 @@ fun convertExpr(e: Expr): List<I9n> =
       e.exprs.flatMap { convertExpr(it) }
     is Expr.New ->
       listOf(New(e.classPath), Dup, Invokespecial(e.classPath, "<init>", "()V"))
+    is Expr.AppendString ->
+      convertAppendString(e)
     // else -> throw RuntimeException("Unknown expr ${e::class}")
   }
+
+fun convertAppendString(e: Expr.AppendString): List<I9n> =
+  listOf(
+    I9n.New("java/lang/StringBuilder"),
+    I9n.Dup,
+    I9n.Invokespecial("java/lang/StringBuilder", "<init>", "()V")
+  ) +
+  convertExpr(e.expr1) +
+  listOf(
+    I9n.Invokevirtual("java/lang/StringBuilder", "append",
+      "(Ljava/lang/String;)Ljava/lang/StringBuilder;")
+  ) +
+  convertExpr(e.expr2) +
+  listOf(
+    I9n.Invokevirtual("java/lang/StringBuilder", "append",
+      "(Ljava/lang/String;)Ljava/lang/StringBuilder;"),
+    I9n.Invokevirtual("java/lang/StringBuilder", "toString",
+      "()Ljava/lang/String;")
+  )

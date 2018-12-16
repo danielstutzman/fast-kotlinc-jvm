@@ -56,32 +56,7 @@ fun convertExpr(expr: Ast): Expr {
   } else if (expr is Sequence) {
     return Expr.Sequence(expr.exprs.map { convertExpr(it) })
   } else if (expr is Plus) {
-    // TODO: Use StringBuilder that gets <init> called instead of making another
-    val appendChild1 = Expr.InvokeVirtual(
-      "java/lang/StringBuilder",
-      Expr.New("java/lang/StringBuilder"),
-      "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;",
-      Type.VoidType,
-      listOf(convertExpr(expr.child1))
-    )
-    val appendChild2 = Expr.InvokeVirtual(
-      "java/lang/StringBuilder",
-      appendChild1,
-      "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;",
-      Type.VoidType,
-      listOf(convertExpr(expr.child2))
-    )
-    val toString = Expr.InvokeVirtual(
-      "java/lang/StringBuilder",
-      appendChild2,
-      "toString", "()Ljava/lang/String;",
-      Type.StringType,
-      listOf<Expr>()
-    )
-    return Expr.Sequence(listOf(
-      Expr.New("java/lang/StringBuilder"),
-      toString
-    ))
+    return Expr.AppendString(convertExpr(expr.child1), convertExpr(expr.child2))
   } else {
     throw RuntimeException("Unknown Ast ${expr::class}")
   }

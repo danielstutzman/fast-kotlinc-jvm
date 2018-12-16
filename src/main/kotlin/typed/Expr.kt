@@ -74,5 +74,12 @@ sealed class Expr {
     override fun getType() = Type.VoidType
   }
 
+  data class AppendString(
+    val expr1: Expr,
+    val expr2: Expr
+  ): Expr() {
+    override fun getType() = Type.StringType
+  }
+
   abstract fun getType(): Type
 }
