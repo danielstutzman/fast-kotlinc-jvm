@@ -1,5 +1,13 @@
 package com.danstutzman.kotlinc
 
+import com.danstutzman.kotlinc.ast.Ast
+import com.danstutzman.kotlinc.ast.Call
+import com.danstutzman.kotlinc.ast.FileContents
+import com.danstutzman.kotlinc.ast.FunDec
+import com.danstutzman.kotlinc.ast.parseSourceToAst
+import com.danstutzman.kotlinc.ast.Plus
+import com.danstutzman.kotlinc.ast.Sequence
+import com.danstutzman.kotlinc.ast.StringConstant
 import com.github.sarahbuisson.kotlinparser.KotlinLexer
 import com.github.sarahbuisson.kotlinparser.KotlinParser
 import java.io.DataOutputStream
@@ -24,7 +32,9 @@ fun main(args: Array<String>) {
   val inputPath = File(args[0])
   val outputPath = File(args[1])
   val source = inputPath.readText()
-  val bytecode = sourceToBytecode(inputPath.getName(), source)
+  val fileContents = parseSourceToAst(source)
+  val bytecode =
+    astToBytecode(filenameToClassName(inputPath.getName()), fileContents)
 
   FileOutputStream(outputPath).use { stream ->
     stream.write(bytecode)
@@ -34,34 +44,6 @@ fun main(args: Array<String>) {
 
 fun printTime() {
   println("TIME: ${LocalDateTime.now().format(formatter)}")
-}
-
-fun printSourceTree(node: ParseTree, indentation: Int) {
-  val className = node::class.java.name
-  val shortName: String =
-    if (className.contains("$")) className.split("$")[1]
-    else if (node is org.antlr.v4.runtime.tree.TerminalNodeImpl)
-      node.getPayload().toString()
-    else className
-  println(" ".repeat(indentation) + shortName)
-  for (i in 0..node.getChildCount() - 1) {
-    printSourceTree(node.getChild(i), indentation + 1)
-  }
-}
-
-fun sourceToBytecode(filename: String, source: String): ByteArray {
-  val kotlinLexer = KotlinLexer(CharStreams.fromString(source))
-  val commonTokenStream = CommonTokenStream(kotlinLexer)
-  val kotlinParser = KotlinParser(commonTokenStream)
-  val tree = kotlinParser.kotlinFile()
-  printSourceTree(tree, 0)
-
-  printTime()
-  val visitor = ToAstVisitor()
-  val fileContents = visitor.visit(tree) as FileContents
-  println(fileContents)
-
-  return astToBytecode(filename, fileContents)
 }
 
 fun astToBytecode(filename: String, fileContents: FileContents): ByteArray {

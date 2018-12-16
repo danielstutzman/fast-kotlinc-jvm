@@ -2,17 +2,15 @@ package com.danstutzman.kotlinc.tests
 
 import com.danstutzman.kotlinc.asm.convertClassToAsm
 import com.danstutzman.kotlinc.asm.serializeClass
+import com.danstutzman.kotlinc.ast.FileContents
+import com.danstutzman.kotlinc.ast.FunDec
+import com.danstutzman.kotlinc.ast.parseSourceToAst
+import com.danstutzman.kotlinc.ast.StringConstant
 import com.danstutzman.kotlinc.AccessFlags
-import com.danstutzman.kotlinc.Ast
 import com.danstutzman.kotlinc.astToBytecode
-import com.danstutzman.kotlinc.FileContents
-import com.danstutzman.kotlinc.FunDec
+import com.danstutzman.kotlinc.filenameToClassName
 import com.danstutzman.kotlinc.Nested
-import com.danstutzman.kotlinc.Plus
 import com.danstutzman.kotlinc.resolveClass
-import com.danstutzman.kotlinc.StringConstant
-import com.danstutzman.kotlinc.sourceToBytecode
-import com.danstutzman.kotlinc.ToAstVisitor
 import com.danstutzman.kotlinc.Type
 import com.github.sarahbuisson.kotlinparser.KotlinLexer
 import com.github.sarahbuisson.kotlinparser.KotlinParser
@@ -28,15 +26,6 @@ import org.junit.Test
 import org.objectweb.asm.ClassReader
 
 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
-
-fun toAst(source: String): Ast {
-  val kotlinLexer = KotlinLexer(CharStreams.fromString(source))
-  val commonTokenStream = CommonTokenStream(kotlinLexer)
-  val kotlinParser = KotlinParser(commonTokenStream)
-  val tree = kotlinParser.expression()
-  val visitor = ToAstVisitor()
-  return visitor.visit(tree)
-}
 
 fun loadClass(className: String?, b: ByteArray): Class<*> {
 	val loader = ClassLoader.getSystemClassLoader()
@@ -63,53 +52,21 @@ fun printTime() {
 
 fun runKotlin(path: String, methodName: String): Any? {
   val source = File(path).readText()
-  val bytecode = sourceToBytecode(path.split("/").last(), source)
-  val class_ = loadClass(null, bytecode)
-  val method = class_.getMethod(methodName) //Array<String>::class.java)
-  return method.invoke(null) //arrayOf<String>())
-}
-
-fun runKotlinAst(path: String, methodName: String, ast: FileContents): Any? {
-  printTime()
-  println("astToBytecode...")
-  val bytecode = astToBytecode(path.split("/").last(), ast)
-  printTime()
-  println("invoking...")
+  val fileContents = parseSourceToAst(source)
+  val bytecode = astToBytecode(
+    filenameToClassName(path.split("/").last()), fileContents)
   val class_ = loadClass(null, bytecode)
   val method = class_.getMethod(methodName) //Array<String>::class.java)
   return method.invoke(null) //arrayOf<String>())
 }
 
 class KotlincTest {
-  @Test fun stringLiteral(): Unit {
-		assertEquals(StringConstant("abc"), toAst("\"abc\""))
-  }
-
   @Test fun helloWorld() {
-    if (true) {
-      //runKotlin("fixtures/input/hello.kt", "main")
-      //printTime()
-      //assertEquals(null, runKotlin("fixtures/input/f1.kt", "f1"))
-      //printTime()
-      assertEquals("abc", runKotlin("fixtures/input/f2.kt", "f2"))
-      //printTime()
-      //assertEquals("abcdef", runKotlin("fixtures/input/f3.kt", "f3"))
-      //printTime()
-      //assertEquals("abc", runKotlin("fixtures/input/f4.kt", "f4"))
-      //printTime()
-    } else {
-      printTime()
-      assertEquals("abc",
-        runKotlinAst("fixtures/input/f2.kt", "f2", FileContents(
-          FunDec("f2", StringConstant("abc"))
-        )))
-      printTime()
-      assertEquals("abcdef",
-        runKotlinAst("fixtures/input/f3.kt", "f3", FileContents(
-          FunDec("f3", Plus(StringConstant("abc"), StringConstant("def")))
-        )))
-      printTime()
-    }
+    runKotlin("fixtures/input/hello.kt", "main")
+    assertEquals(null, runKotlin("fixtures/input/f1.kt", "f1"))
+    assertEquals("abc", runKotlin("fixtures/input/f2.kt", "f2"))
+    assertEquals("abcdef", runKotlin("fixtures/input/f3.kt", "f3"))
+    assertEquals("abc", runKotlin("fixtures/input/f4.kt", "f4"))
   }
 
   @Test fun astToNested() {
@@ -124,13 +81,13 @@ class KotlincTest {
 	}
 
   @Test fun integrationTest() {
-    val ast = FileContents(FunDec("f4", StringConstant("abc")))
-    val nested = resolveClass("F4Kt", ast)
+    val ast = FileContents(FunDec("f5", StringConstant("abc")))
+    val nested = resolveClass("F5Kt", ast)
     val asm = convertClassToAsm(nested)
     val bytecode = serializeClass(asm)
-    // File("F4Kt.class").writeBytes(bytecode)
+    // File("F5Kt.class").writeBytes(bytecode)
     val class_ = loadClass(null, bytecode)
-    val method = class_.getMethod("f4")
+    val method = class_.getMethod("f5")
     val returned = method.invoke(arrayOf<String>())
     assertEquals("abc", returned)
   }
